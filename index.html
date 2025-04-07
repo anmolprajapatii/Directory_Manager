@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directory Manager</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <h1>Directory Manager</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="create">Create</button>
+            <button class="tab-btn" data-tab="delete">Delete</button>
+            <button class="tab-btn" data-tab="rename">Rename</button>
+            <button class="tab-btn" data-tab="move">Move</button>
+            <button class="tab-btn" data-tab="copy">Copy</button>
+            <button class="tab-btn" data-tab="organize">Organize</button>
+        </div>
+
+        <div class="tab-content active" id="create">
+            <h2>Create Directory</h2>
+            <div class="form-group">
+                <label>Parent Directory:</label>
+                <input type="text" id="create-path" placeholder="C:/Users/Name/Desktop">
+            </div>
+            <div class="form-group">
+                <label>Directory Name:</label>
+                <input type="text" id="create-name" placeholder="NewFolder">
+            </div>
+            <button class="action-btn" id="create-btn">Create</button>
+        </div>
+
+        <div class="tab-content" id="delete">
+            <h2>Delete Directory</h2>
+            <div class="form-group">
+                <label>Directory Path:</label>
+                <input type="text" id="delete-path" placeholder="C:/Users/Name/Desktop/OldFolder">
+            </div>
+            <button class="action-btn" id="delete-btn">Delete</button>
+        </div>
+
+        <div class="tab-content" id="rename">
+            <h2>Rename Directory</h2>
+            <div class="form-group">
+                <label>Current Path:</label>
+                <input type="text" id="rename-old-path" placeholder="C:/Users/Name/Desktop/OldName">
+            </div>
+            <div class="form-group">
+                <label>New Name:</label>
+                <input type="text" id="rename-new-name" placeholder="NewName">
+            </div>
+            <button class="action-btn" id="rename-btn">Rename</button>
+        </div>
+
+        <div class="tab-content" id="move">
+            <h2>Move Directory</h2>
+            <div class="form-group">
+                <label>Source Path:</label>
+                <input type="text" id="move-src" placeholder="C:/Users/Name/Desktop/FolderToMove">
+            </div>
+            <div class="form-group">
+                <label>Destination Path:</label>
+                <input type="text" id="move-dest" placeholder="C:/Users/Name/Documents">
+            </div>
+            <button class="action-btn" id="move-btn">Move</button>
+        </div>
+
+        <div class="tab-content" id="copy">
+            <h2>Copy Directory</h2>
+            <div class="form-group">
+                <label>Source Path:</label>
+                <input type="text" id="copy-src" placeholder="C:/Users/Name/Desktop/FolderToCopy">
+            </div>
+            <div class="form-group">
+                <label>Destination Path:</label>
+                <input type="text" id="copy-dest" placeholder="C:/Users/Name/Documents">
+            </div>
+            <button class="action-btn" id="copy-btn">Copy</button>
+        </div>
+
+        <div class="tab-content" id="organize">
+            <h2>Organize Directory</h2>
+            <div class="form-group">
+                <label>Directory Path:</label>
+                <input type="text" id="organize-path" placeholder="C:/Users/Name/Desktop/Unorganized">
+            </div>
+            <button class="action-btn" id="organize-btn">Organize</button>
+        </div>
+
+        <div class="output" id="output"></div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Output messages
+        function showMessage(message, isError = false) {
+            const output = document.getElementById('output');
+            const msg = document.createElement('div');
+            msg.textContent = message;
+            msg.className = isError ? 'error' : 'success';
+            output.appendChild(msg);
+            setTimeout(() => msg.remove(), 5000);
+        }
+
+        // API call helper
+        async function callApi(endpoint, data) {
+            try {
+                const response = await fetch(`/api/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                showMessage(result.message, !result.success);
+            } catch (error) {
+                showMessage('Failed to connect to server', true);
+            }
+        }
+
+        // Button event listeners
+        document.getElementById('create-btn').addEventListener('click', () => {
+            const path = document.getElementById('create-path').value;
+            const name = document.getElementById('create-name').value;
+            if (!path || !name) return showMessage('Please fill all fields', true);
+            callApi('create', { path, name });
+        });
+
+        document.getElementById('delete-btn').addEventListener('click', () => {
+            const path = document.getElementById('delete-path').value;
+            if (!path) return showMessage('Please enter a path', true);
+            callApi('delete', { path });
+        });
+
+        document.getElementById('rename-btn').addEventListener('click', () => {
+            const oldPath = document.getElementById('rename-old-path').value;
+            const newName = document.getElementById('rename-new-name').value;
+            if (!oldPath || !newName) return showMessage('Please fill all fields', true);
+            callApi('rename', { oldPath, newName });
+        });
+
+        document.getElementById('move-btn').addEventListener('click', () => {
+            const src = document.getElementById('move-src').value;
+            const dest = document.getElementById('move-dest').value;
+            if (!src || !dest) return showMessage('Please fill all fields', true);
+            callApi('move', { src, dest });
+        });
+
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            const src = document.getElementById('copy-src').value;
+            const dest = document.getElementById('copy-dest').value;
+            if (!src || !dest) return showMessage('Please fill all fields', true);
+            callApi('copy', { src, dest });
+        });
+
+        document.getElementById('organize-btn').addEventListener('click', () => {
+            const path = document.getElementById('organize-path').value;
+            if (!path) return showMessage('Please enter a path', true);
+            callApi('organize', { path });
+        });
+    </script>
+</body>
+</html>
