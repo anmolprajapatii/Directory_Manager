@@ -1,3 +1,3 @@
-git clone https://github.com/your/repo.git
+git clone hhttps://github.com/anmolprajapatii/Directory_Manager.git
 cd repo
 python script.py
